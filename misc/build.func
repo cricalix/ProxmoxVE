@@ -811,7 +811,7 @@ build_container() {
     $PW
   "
   # This executes create_lxc.sh and creates the container and .conf file
-  bash -c "$(wget -qLO - ${CSCRIPTS_BASE_URL}/ct/create_lxc.sh)" || exit
+  bash -c "$(curl -sL ${CSCRIPTS_BASE_URL}/ct/create_lxc.sh)" || exit
 
   LXC_CONFIG=/etc/pve/lxc/${CTID}.conf
   if [ "$CT_TYPE" == "0" ]; then
