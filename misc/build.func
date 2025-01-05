@@ -3,6 +3,7 @@
 # Co-Author: MickLesk
 # License: MIT
 # https://github.com/community-scripts/ProxmoxVE/raw/main/LICENSE
+# shellcheck shell=bash
 
 variables() {
   NSAPP=$(echo ${APP,,} | tr -d ' ') # This function sets the NSAPP variable by converting the value of the APP variable to lowercase and removing any spaces.
@@ -284,6 +285,7 @@ base_settings() {
   VLAN=""
   SSH="no"
   TAGS="community-script;"
+  ENABLE_TRANSCODE=0
   
   # Override default settings with variables from ct script
   CT_TYPE=${var_unprivileged:-$CT_TYPE}
@@ -292,6 +294,7 @@ base_settings() {
   RAM_SIZE=${var_ram:-$RAM_SIZE}
   VERB=${var_verbose:-$VERBOSE}
   TAGS="${TAGS}${var_tags:-}"
+  ENABLE_TRANSCODE=${var_enable_transcode:-$ENABLE_TRANSCODE}
   
   # Since these 2 are only defined outside of default_settings function, we add a temporary fallback. TODO: To align everything, we should add these as constant variables (e.g. OSTYPE and OSVERSION), but that would currently require updating the default_settings function for all existing scripts
   if [ -z "$var_os" ]; then
@@ -405,6 +408,20 @@ advanced_settings() {
       exit_script
     fi
   done
+
+  if [[ $var_can_use_transcode -eq 1 ]]; then
+    if [[ $var_enable_transcode -ne 1 ]]; then
+      _DEFAULT_NO="--defaultno"
+    else
+      _DEFAULT_NO=""
+    fi
+    if (whiptail --backtitle "ProxmoxVE Helper Scripts" ${_DEFAULT_NO} --title "ENABLE TRANSCODE" --yesno "Enable transcode device support?" 10 58); then
+      ENABLE_TRANSCODE=1
+    else
+      ENABLE_TRANSCODE=0
+    fi
+    echo -e "${CM}${BOLD}${DGN}Transcoding support: ${BGN}$ENABLE_TRANSCODE${CL}"
+  fi
 
   while true; do
     if PW1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --passwordbox "\nSet Root Password (needed for root ssh access)" 9 58 --title "PASSWORD (leave blank for automatic login)" 3>&1 1>&2 2>&3); then
@@ -839,7 +856,7 @@ EOF
   fi
 
   if [ "$CT_TYPE" == "0" ]; then
-    if [[ "$APP" == "Channels" || "$APP" == "Emby" || "$APP" == "ErsatzTV" || "$APP" == "Frigate" || "$APP" == "Jellyfin" || "$APP" == "Plex" || "$APP" == "Scrypted" || "$APP" == "Tdarr" || "$APP" == "Unmanic" || "$APP" == "Ollama" ]]; then
+    if [[ $ENABLE_TRANSCODE -eq 1 ]]; then
       cat <<EOF >>$LXC_CONFIG
 # VAAPI hardware transcoding
 lxc.cgroup2.devices.allow: c 226:0 rwm
@@ -851,21 +868,23 @@ lxc.mount.entry: /dev/dri/renderD128 dev/dri/renderD128 none bind,optional,creat
 EOF
     fi
   else
-    if [[ "$APP" == "Channels" || "$APP" == "Emby" || "$APP" == "ErsatzTV" || "$APP" == "Frigate" || "$APP" == "Jellyfin" || "$APP" == "Plex" || "$APP" == "Scrypted" || "$APP" == "Tdarr" || "$APP" == "Unmanic" || "$APP" == "Ollama" ]]; then
+    if [[ $ENABLE_TRANSCODE -eq 1 ]]; then
       if [[ -e "/dev/dri/renderD128" ]]; then
         if [[ -e "/dev/dri/card0" ]]; then
-          cat <<EOF >>$LXC_CONFIG
+          cat <<EOF >>"${LXC_CONFIG}"
 # VAAPI hardware transcoding
 dev0: /dev/dri/card0,gid=44
 dev1: /dev/dri/renderD128,gid=104
 EOF
         else
-          cat <<EOF >>$LXC_CONFIG
+          cat <<EOF >>"${LXC_CONFIG}"
 # VAAPI hardware transcoding
 dev0: /dev/dri/card1,gid=44
 dev1: /dev/dri/renderD128,gid=104
 EOF
         fi
+      else
+        echo -e "${CROSS}${RD}Warning: Transcode device support requested, but /dev/dri/renderD128 does not exist${CL}"
       fi
     fi
   fi
