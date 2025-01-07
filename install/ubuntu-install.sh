@@ -12,7 +12,7 @@ catch_errors
 setting_up_container
 network_check
 update_os
-install_core_dependencies
+install_core_packages
 
 motd_ssh
 customize

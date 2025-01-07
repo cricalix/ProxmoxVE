@@ -200,11 +200,10 @@ EOF
 # Install core packages that (almost) every container will depend upon.
 # Be sure to update alpine-install.func to match for apk-based systems when
 # adding a new package.
-# a new package.
-install_core_dependencies() {
-  msg_info "Installing Core Dependencies"
+install_core_packages() {
+  msg_info "Installing Core Packages"
   $STD apt-get install curl mc sudo
-  msg_ok "Installed Core Dependencies"
+  msg_ok "Installed Core Packages"
 }
 
 # This function modifies the message of the day (motd) and SSH settings
