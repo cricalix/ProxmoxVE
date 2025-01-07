@@ -136,9 +136,9 @@ update_os() {
 # Install core packages that (almost) every container will depend upon.
 # Be sure to update install.func for apt-based systems as appropriate.
 install_core_dependencies() {
-  msg_info "Installing core dependencies"
+  msg_info "Installing Core Dependencies"
   $STD apk add curl mc nano newt openssh sudo
-  msg_ok "Installed core dependencies"
+  msg_ok "Installed Core Dependencies"
 }
 
 # This function modifies the message of the day (motd) and SSH settings

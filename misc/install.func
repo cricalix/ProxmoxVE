@@ -202,9 +202,9 @@ EOF
 # adding a new package.
 # a new package.
 install_core_dependencies() {
-  msg_info "Installing core dependencies"
+  msg_info "Installing Core Dependencies"
   $STD apt-get install curl mc sudo
-  msg_ok "Installed core dependencies"
+  msg_ok "Installed Core Dependencies"
 }
 
 # This function modifies the message of the day (motd) and SSH settings
