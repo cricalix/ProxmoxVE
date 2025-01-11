@@ -202,7 +202,7 @@ EOF
 # adding a new package.
 install_core_packages() {
   msg_info "Installing Core Packages"
-  $STD apt-get install curl mc sudo
+  apt-get install -y curl mc sudo &> /dev/null
   msg_ok "Installed Core Packages"
 }
 
